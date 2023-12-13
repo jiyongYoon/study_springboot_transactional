@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.transaction.UnexpectedRollbackException;
 
 @Slf4j
@@ -192,5 +193,127 @@ class MemberServiceTest {
         2023-09-23 22:59:07.948 DEBUG 28748 --- [    Test worker] org.hibernate.SQL                        : select member0_.id as id1_1_, member0_.username as username2_1_ from member member0_ where member0_.username=?
         2023-09-23 22:59:07.966 DEBUG 28748 --- [    Test worker] org.hibernate.SQL                        : select log0_.id as id1_0_, log0_.message as message2_0_ from log log0_ where log0_.message=?
          */
+    }
+
+    /**
+     * memberService    @Transactional-ON
+     * memberRepository @Transactional-OFF
+     * logRepository    @Transactional-OFF
+     */
+    @Test
+    void outerTx_innerNoTx() {
+        // given
+        String username = "유저명";
+
+        // when
+        memberService.joinV4(username);
+
+        // then: member 저장, log 저장
+        Assertions.assertTrue(memberRepository.find(username).isPresent());
+        Assertions.assertTrue(logRepository.find(username).isPresent());
+
+        /*
+        2023-09-27 01:18:26.830 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [hello.springtx.propagation.MemberService.joinV4]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+        2023-09-27 01:18:26.833 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Opened new EntityManager [SessionImpl(303934490<open>)] for JPA transaction
+        2023-09-27 01:18:26.840 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@f98cff]
+        2023-09-27 01:18:26.840 TRACE 23896 --- [    Test worker] o.s.t.i.TransactionInterceptor           : Getting transaction for [hello.springtx.propagation.MemberService.joinV4]
+        2023-09-27 01:18:26.853  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberService     : == joinV4 Tx 메서드 호출 시작 ==
+        2023-09-27 01:18:26.853  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberService     : == memberRepository 호출 시작 ==
+        2023-09-27 01:18:26.861  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberRepository  : member 저장
+        2023-09-27 01:18:26.869 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : call next value for hibernate_sequence
+        2023-09-27 01:18:26.935  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberService     : == memberRepository 호출 종료 ==
+        2023-09-27 01:18:26.935  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberService     : == logRepository 호출 시작 ==
+        2023-09-27 01:18:26.941  INFO 23896 --- [    Test worker] h.springtx.propagation.LogRepository     : log 저장
+        2023-09-27 01:18:26.942 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : call next value for hibernate_sequence
+        2023-09-27 01:18:26.942  INFO 23896 --- [    Test worker] h.springtx.propagation.MemberService     : == logRepository 호출 종료 ==
+        2023-09-27 01:18:26.943 TRACE 23896 --- [    Test worker] o.s.t.i.TransactionInterceptor           : Completing transaction for [hello.springtx.propagation.MemberService.joinV4]
+        2023-09-27 01:18:26.943 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+        2023-09-27 01:18:26.943 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(303934490<open>)]
+        2023-09-27 01:18:26.961 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : insert into member (username, id) values (?, ?)
+        2023-09-27 01:18:26.968 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : insert into log (message, id) values (?, ?)
+        2023-09-27 01:18:26.972 DEBUG 23896 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Closing JPA EntityManager [SessionImpl(303934490<open>)] after transaction
+        2023-09-27 01:18:27.152 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : select member0_.id as id1_1_, member0_.username as username2_1_ from member member0_ where member0_.username=?
+        2023-09-27 01:18:27.169 DEBUG 23896 --- [    Test worker] org.hibernate.SQL                        : select log0_.id as id1_0_, log0_.message as message2_0_ from log log0_ where log0_.message=?
+         */
+    }
+
+    /**
+     * memberService    @Transactional-ON
+     * memberRepository @Transactional-OFF
+     * logRepository    @Transactional-OFF, exception
+     */
+    @Test
+    void outerTx_innerNoTx_exception() {
+        // given
+        String username = "로그예외_유저명";
+
+        // when
+        assertThatThrownBy(() -> memberService.joinV4(username))
+            .isInstanceOf(RuntimeException.class);
+
+        // then: member 롤백, log 롤백
+        Assertions.assertTrue(memberRepository.find(username).isEmpty());
+        Assertions.assertTrue(logRepository.find(username).isEmpty());
+
+        /*
+        2023-09-27 01:17:25.366 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [hello.springtx.propagation.MemberService.joinV4]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+        2023-09-27 01:17:25.369 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Opened new EntityManager [SessionImpl(452592778<open>)] for JPA transaction
+        2023-09-27 01:17:25.374 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@520ec7a7]
+        2023-09-27 01:17:25.374 TRACE 37224 --- [    Test worker] o.s.t.i.TransactionInterceptor           : Getting transaction for [hello.springtx.propagation.MemberService.joinV4]
+        2023-09-27 01:17:25.386  INFO 37224 --- [    Test worker] h.springtx.propagation.MemberService     : == joinV4 Tx 메서드 호출 시작 ==
+        2023-09-27 01:17:25.386  INFO 37224 --- [    Test worker] h.springtx.propagation.MemberService     : == memberRepository 호출 시작 ==
+        2023-09-27 01:17:25.392  INFO 37224 --- [    Test worker] h.springtx.propagation.MemberRepository  : member 저장
+        2023-09-27 01:17:25.397 DEBUG 37224 --- [    Test worker] org.hibernate.SQL                        : call next value for hibernate_sequence
+        2023-09-27 01:17:25.440  INFO 37224 --- [    Test worker] h.springtx.propagation.MemberService     : == memberRepository 호출 종료 ==
+        2023-09-27 01:17:25.440  INFO 37224 --- [    Test worker] h.springtx.propagation.MemberService     : == logRepository 호출 시작 ==
+        2023-09-27 01:17:25.588  INFO 37224 --- [    Test worker] h.springtx.propagation.LogRepository     : log 저장
+        2023-09-27 01:17:25.589 DEBUG 37224 --- [    Test worker] org.hibernate.SQL                        : call next value for hibernate_sequence
+        2023-09-27 01:17:25.589  INFO 37224 --- [    Test worker] h.springtx.propagation.LogRepository     : log 저장시 예외 발생
+        2023-09-27 01:17:25.617 TRACE 37224 --- [    Test worker] o.s.t.i.TransactionInterceptor           : Completing transaction for [hello.springtx.propagation.MemberService.joinV4] after exception: java.lang.RuntimeException: 예외 발생
+        2023-09-27 01:17:25.617 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction rollback
+        2023-09-27 01:17:25.617 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Rolling back JPA transaction on EntityManager [SessionImpl(452592778<open>)]
+        2023-09-27 01:17:25.629 DEBUG 37224 --- [    Test worker] o.s.orm.jpa.JpaTransactionManager        : Closing JPA EntityManager [SessionImpl(452592778<open>)] after transaction
+        2023-09-27 01:17:25.903 DEBUG 37224 --- [    Test worker] org.hibernate.SQL                        : select member0_.id as id1_1_, member0_.username as username2_1_ from member member0_ where member0_.username=?
+        2023-09-27 01:17:25.912 DEBUG 37224 --- [    Test worker] org.hibernate.SQL                        : select log0_.id as id1_0_, log0_.message as message2_0_ from log log0_ where log0_.message=?
+         */
+    }
+
+    /**
+     * memberService    @Transactional-ON, exception
+     * memberRepository @Transactional-OFF
+     * logRepository    @Transactional-OFF
+     */
+    @Test
+    void outerTx_exception_innerNoTx() {
+        // given
+        String username = "조인예외_유저명";
+
+        // when
+        assertThatThrownBy(() -> memberService.joinV5(username))
+            .isInstanceOf(RuntimeException.class);
+
+        // then: member 롤백, log 롤백
+        Assertions.assertTrue(memberRepository.find(username).isEmpty());
+        Assertions.assertTrue(logRepository.find(username).isEmpty());
+    }
+
+    /**
+     * memberService    @Transactional-OFF, exception
+     * memberRepository @Transactional-OFF
+     * logRepository    @Transactional-OFF
+     */
+    @Test
+    void outerNoTx_exception_innerNoTx() {
+        // given
+        String username = "조인예외_유저명";
+
+        // when
+        assertThatThrownBy(() -> memberService.joinV6(username))
+            .isInstanceOf(InvalidDataAccessApiUsageException.class); // 트랜잭션이 없이는 EntityManager를 사용할 수 없어 생기는 Exception
+        // org.springframework.dao.InvalidDataAccessApiUsageException: No EntityManager with actual transaction available for current thread
+
+        // then: member 저장 실패, log 저장 실패
+        Assertions.assertTrue(memberRepository.find(username).isEmpty());
+        Assertions.assertTrue(logRepository.find(username).isEmpty());
     }
 }

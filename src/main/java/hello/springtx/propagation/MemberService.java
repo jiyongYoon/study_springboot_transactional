@@ -64,4 +64,58 @@ public class MemberService {
         }
         log.info("== logRepository 호출 종료 ==");
     }
+
+    @Transactional
+    public void joinV4(String username) {
+        log.info("== joinV4 Tx 메서드 호출 시작 ==");
+        Member member = new Member(username);
+        Log logMessage = new Log(username);
+
+        log.info("== memberRepository 호출 시작 ==");
+        memberRepository.saveNoTx(member);
+        log.info("== memberRepository 호출 종료 ==");
+
+        log.info("== logRepository 호출 시작 ==");
+        logRepository.saveNoTx(logMessage);
+        log.info("== logRepository 호출 종료 ==");
+    }
+
+    @Transactional
+    public void joinV5(String username) {
+        log.info("== joinV5 Tx 메서드 호출 시작 ==");
+        Member member = new Member(username);
+        Log logMessage = new Log(username);
+
+        log.info("== memberRepository 호출 시작 ==");
+        memberRepository.saveNoTx(member);
+        log.info("== memberRepository 호출 종료 ==");
+
+        log.info("== logRepository 호출 시작 ==");
+        logRepository.saveNoTx(logMessage);
+        log.info("== logRepository 호출 종료 ==");
+
+        if (logMessage.getMessage().contains("조인예외")) {
+            log.info("서비스 조인에서 예외 발생");
+            throw new RuntimeException("예외 발생");
+        }
+    }
+
+    public void joinV6(String username) {
+        log.info("== joinV6 Tx 메서드 호출 시작 ==");
+        Member member = new Member(username);
+        Log logMessage = new Log(username);
+
+        log.info("== memberRepository 호출 시작 ==");
+        memberRepository.saveNoTx(member);
+        log.info("== memberRepository 호출 종료 ==");
+
+        log.info("== logRepository 호출 시작 ==");
+        logRepository.saveNoTx(logMessage);
+        log.info("== logRepository 호출 종료 ==");
+
+        if (logMessage.getMessage().contains("조인예외")) {
+            log.info("서비스 조인에서 예외 발생");
+            throw new RuntimeException("예외 발생");
+        }
+    }
 }

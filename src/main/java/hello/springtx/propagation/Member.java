@@ -22,4 +22,5 @@ public class Member {
     public Member(String username) {
         this.username = username;
     }
+
 }
