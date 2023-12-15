@@ -22,14 +22,23 @@ public class BService {
         String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
         log.info("트랜잭션={}, bMethod(), Requires_New", currentTransactionName);
 
-
         Book bookB = Book.builder().name("B번책").build();
         bookRepository.save(bookB);
         try {
             cService.cMethod();
         } catch (Exception e) {
+            e.printStackTrace();
             log.info("bMethod 에서 catch");
-            throw e;
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void bMethodWithoutTryCatch() {
+        String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
+        log.info("트랜잭션={}, bMethod(), Requires_New", currentTransactionName);
+
+        Book bookB = Book.builder().name("B번책").build();
+        bookRepository.save(bookB);
+        cService.cMethod();
     }
 }
