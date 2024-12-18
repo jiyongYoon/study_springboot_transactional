@@ -57,6 +57,6 @@ C 에서 발생한 Exception은 B에서 처리되었으니 원인은 아니다.
 
 ---
 ### 참고자료
-[Spring, REQUIRED, REQUIRES_NEW 옵션과 Try-Catch](https://kth990303.tistory.com/388)
-[응? 이게 왜 롤백되는거지? | 우아한형제들 기술블로그](https://techblog.woowahan.com/2606/)
-[Springboot - Transaction](https://blog.breakingthat.com/2018/04/03/springboot-transaction-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98/)
+[Spring, REQUIRED, REQUIRES_NEW 옵션과 Try-Catch](https://kth990303.tistory.com/388) <br>
+[응? 이게 왜 롤백되는거지? | 우아한형제들 기술블로그](https://techblog.woowahan.com/2606/) <br>
+[Springboot - Transaction](https://blog.breakingthat.com/2018/04/03/springboot-transaction-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98/) <br>

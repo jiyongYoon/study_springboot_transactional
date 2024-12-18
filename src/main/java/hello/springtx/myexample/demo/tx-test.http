@@ -1,0 +1,11 @@
+### tx-test 1 - aService에서 exception catch O, bService에서 exception catch O - 저장 O (A에서 잡는 Exception: UnexpectedRollbackException)
+GET http://localhost:8080/tx/1
+
+### tx-test 2 - aService에서 exception catch X, bService에서 exception catch O - 저장 X
+GET http://localhost:8080/tx/2
+
+### tx-test 3 - aService에서 exception catch X, bService에서 exception catch X - 저장 X
+GET http://localhost:8080/tx/3
+
+### tx-test 4 - aService에서 exception catch O, bService에서 exception catch X - 저장 O (A에서 잡는 Exception: RuntimeException)
+GET http://localhost:8080/tx/4

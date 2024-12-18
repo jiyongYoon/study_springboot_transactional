@@ -27,8 +27,7 @@ public class BService {
         try {
             cService.cMethod();
         } catch (Exception e) {
-            e.printStackTrace();
-            log.info("bMethod 에서 catch");
+            log.error("bMethod 에서 catch", e);
         }
     }
 

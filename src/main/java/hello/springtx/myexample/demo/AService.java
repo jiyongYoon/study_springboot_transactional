@@ -5,6 +5,7 @@ import hello.springtx.myexample.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -26,9 +27,8 @@ public class AService {
         bookRepository.save(bookA);
         try {
             bService.bMethod();
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("AService에서 catch");
+        } catch (UnexpectedRollbackException e) {
+            log.error("AService에서 catch", e);
         }
     }
 
@@ -61,9 +61,8 @@ public class AService {
         bookRepository.save(bookA);
         try {
             bService.bMethodWithoutTryCatch();
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("AService에서 catch");
+        } catch (RuntimeException e) {
+            log.error("AService에서 catch", e);
         }
     }
 
